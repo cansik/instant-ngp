@@ -1,0 +1,1 @@
+PowerShell -NoExit -Command "conda activate ngp; clear; echo '>>> Instant NGP Shell'"

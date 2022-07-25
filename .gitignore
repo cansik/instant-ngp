@@ -13,3 +13,10 @@
 __pycache__
 .DS_Store
 imgui.ini
+/data
+/temp
+.idea
+*.mp4
+*.db
+/colmap_text
+/colmap_sparse
