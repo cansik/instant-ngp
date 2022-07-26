@@ -296,7 +296,8 @@ if __name__ == "__main__":
 
 					up += c2w[0:3, 1]
 
-				frame = {"file_path": name, "sharpness": b, "transform_matrix": c2w}
+				file_path = f"{'_'.join(elems[9:])}"
+				frame = {"file_path": file_path, "sharpness": b, "transform_matrix": c2w}
 				out["frames"].append(frame)
 	nframes = len(out["frames"])
 

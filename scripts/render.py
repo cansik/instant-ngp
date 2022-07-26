@@ -25,7 +25,7 @@ def render_video(resolution, numframes, scene, name, spp, fps, exposure=0):
 
 	if 'temp' in os.listdir():
 		shutil.rmtree('temp')
-	os.makedirs('temp')	
+	os.makedirs('temp')
 
 	for i in tqdm(list(range(min(numframes,numframes+1))), unit="frames", desc=f"Rendering"):
 		testbed.camera_smoothing = i > 0
@@ -38,7 +38,8 @@ def render_video(resolution, numframes, scene, name, spp, fps, exposure=0):
 
 		common.write_image(f"temp/{ix:04d}.png", np.clip(frame * 2**exposure, 0.0, 1.0), quality=100)
 
-	os.system(f"ffmpeg -i temp/%04d.png -vf \"fps={fps}\" -c:v libx264 -crf 20 -pix_fmt yuv420p {name}.mp4")
+	output_name = os.path.join(scene, f"{name}.mp4")
+	os.system(f"ffmpeg -i temp/%04d.png -vf \"fps={fps}\" -c:v libx264 -crf 20 -pix_fmt yuv420p {output_name}")
 	# shutil.rmtree('temp')
 
 
@@ -57,6 +58,6 @@ def parse_args():
 	return args
 
 if __name__ == "__main__":
-	args = parse_args()	
+	args = parse_args()
 
 	render_video([args.width, args.height], args.n_seconds*args.fps, args.scene, args.render_name, spp=8, fps=args.fps)

@@ -20,3 +20,5 @@ imgui.ini
 *.db
 /colmap_text
 /colmap_sparse
+colmap.db-shm
+colmap.db-wal
