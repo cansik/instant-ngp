@@ -1,9 +1,17 @@
 param ($path, $scale=16, [Switch]$render=$false, $time=5, $fps=24, $width=1280, $height=720)
 
 if (-not(Test-path "$path/transforms.json" -PathType leaf))
-{
-    # run colmap2nerf
-    python scripts/colmap2nerf.py --colmap_matcher sequential --run_colmap --aabb_scale $scale --images "$path"
+{	
+	if (Test-path "$path/cameras.xml" -PathType leaf)
+	{
+		echo "converting agisoft camera file..."
+		# convert agisoft
+		python scripts/agi2nerf.py --xml_in "$path/cameras.xml" --out "$path/transforms.json" --imgtype png --imgfolder "$path"
+	} else {
+		echo "aligning images with colmap..."
+		# run colmap2nerf
+		python scripts/colmap2nerf.py --colmap_matcher sequential --run_colmap --aabb_scale $scale --images "$path"
+	}
 }
 
 # run testbed or renderer
@@ -16,8 +24,9 @@ if ($render) {
 	if (Test-path "$path/base.msgpack" -PathType leaf)
 	{
 		echo "loading snapshot $path/base.msgpack"
-		python scripts/run.py --mode nerf --scene "$path" --load_snapshot "$path/base.msgpack" --near_distance 0.01 --gui
+		python scripts/run.py --mode nerf --scene "$path" --load_snapshot "$path/base.msgpack" --near_distance 0.01 --gui --width 720 --height 720
 	} else {
-		python scripts/run.py --mode nerf --scene "$path" --save_snapshot "$path/base.msgpack" --near_distance 0.01 --gui --train --n_steps 20000
+		echo "training..."
+		python scripts/run.py --mode nerf --scene "$path" --save_snapshot "$path/base.msgpack" --near_distance 0.01 --train --n_steps 20000 --width 720 --height 720 --gui
 	}
 }
