@@ -15,6 +15,7 @@ from tqdm import tqdm
 import common
 import pyngp as ngp # noqa
 import numpy as np
+import cv2
 
 def render_video(resolution, numframes, scene, name, spp, fps, exposure=0):
 	testbed = ngp.Testbed(ngp.TestbedMode.Nerf)
@@ -36,12 +37,23 @@ def render_video(resolution, numframes, scene, name, spp, fps, exposure=0):
 
 		ix = i - 1
 
-		common.write_image(f"temp/{ix:04d}.png", np.clip(frame * 2**exposure, 0.0, 1.0), quality=100)
+		# common.write_image(f"temp/{ix:04d}.png", np.clip(frame * 2**exposure, 0.0, 1.0), quality=100)
+		write_fast(f"temp/{ix:04d}.png", frame, exposure)
 
 	output_name = os.path.join(scene, f"{name}.mp4")
 	os.system(f"ffmpeg -i temp/%04d.png -vf \"fps={fps}\" -c:v libx264 -crf 20 -pix_fmt yuv420p {output_name}")
 	# shutil.rmtree('temp')
 
+def write_fast(path, frame, exposure):
+	img = np.clip(frame * 2**exposure, 0.0, 1.0)
+
+	# Unmultiply alpha
+	img[...,0:3] = np.divide(img[...,0:3], img[...,3:4], out=np.zeros_like(img[...,0:3]), where=img[...,3:4] != 0)
+	img[...,0:3] = common.linear_to_srgb(img[...,0:3])
+
+	img = (np.clip(img, 0.0, 1.0) * 255.0 + 0.5).astype(np.uint8)
+	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+	cv2.imwrite(path, img)
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="render neural graphics primitives testbed, see documentation for how to")
