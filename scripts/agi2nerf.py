@@ -143,7 +143,7 @@ if __name__ == "__main__":
 			if(frame[0].tag != "transform"):
 				continue
 			
-			imagePath = IMGFOLDER+frame.get("label")+"." + IMGTYPE
+			imagePath = os.path.join(IMGFOLDER, frame.get("label")+"." + IMGTYPE)
 			current_frame.update({"file_path": imagePath})
 			current_frame.update({"sharpness":sharpness(imagePath)})
 			matrix_elements = [float(i) for i in frame[0].text.split()]
