@@ -72,8 +72,6 @@ def render_video(resolution, numframes, scene, name, spp, fps, camera_smoothing,
 	testbed.load_snapshot(os.path.join(scene, "base.msgpack"))
 	testbed.load_camera_path(os.path.join(scene, "base_cam.json"))
 
-	testbed.camera_smoothing = camera_smoothing
-
 	if crop_size is not None:
 		set_crop_size(testbed, crop_size)
 
@@ -85,6 +83,9 @@ def render_video(resolution, numframes, scene, name, spp, fps, camera_smoothing,
 	recorder.open()
 
 	for i in tqdm(list(range(min(numframes,numframes+1))), unit="frames", desc=f"Rendering"):
+		if i > 0:
+			testbed.camera_smoothing = camera_smoothing
+
 		frame = testbed.render(resolution[0], resolution[1], spp, True, float(i)/numframes, float(i + 1)/numframes, fps, shutter_fraction=0.5)
 
 		if i == 0:
