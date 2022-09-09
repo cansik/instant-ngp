@@ -1,7 +1,24 @@
-param ($path, $scale=16, [Switch]$render=$false, $time=5, $fps=24, $width=1280, $height=720)
+param (
+    $path,
+    $scale=16,
+    [Switch]$render=$false,
+    $time=5,
+    $fps=24,
+    $width=1280,
+    $height=720,
+    $spp=8,
+    [Switch]$smoothing=$true
+)
+
+function op($name, $c) {
+    if($c) {
+        return $name
+    }
+    return ""
+}
 
 if (-not(Test-path "$path/transforms.json" -PathType leaf))
-{	
+{
 	if (Test-path "$path/cameras.xml" -PathType leaf)
 	{
 		echo "converting agisoft camera file..."
@@ -16,11 +33,13 @@ if (-not(Test-path "$path/transforms.json" -PathType leaf))
 
 # run testbed or renderer
 if ($render) {
+    echo "rendering..."
     $render_name = Split-Path "$path" -Leaf
-    python scripts/render.py --scene "$path" --n_seconds $time --fps $fps --render_name "$render_name" --width $width --height $height
+    $smp = op "--camera-smoothing" $smoothing
+    python scripts/render.py --scene "$path" --n_seconds $time --fps $fps --render_name "$render_name" --width $width --height $height --spp $spp $smp
 } else {
 	$add_args = ""
-	
+
 	if (Test-path "$path/base.msgpack" -PathType leaf)
 	{
 		echo "loading snapshot $path/base.msgpack"

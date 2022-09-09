@@ -60,12 +60,12 @@ class AsyncFrameSetRecorder:
         cv2.imwrite(output_path, image)
 
 
-def render_video(resolution, numframes, scene, name, spp, fps, exposure=0):
+def render_video(resolution, numframes, scene, name, spp, fps, camera_smoothing, exposure=0):
 	testbed = ngp.Testbed(ngp.TestbedMode.Nerf)
-	# testbed.load_snapshot("data/toy/base.msgpack")
-	# testbed.load_camera_path("data/toy/base_cam.json")
 	testbed.load_snapshot(os.path.join(scene, "base.msgpack"))
 	testbed.load_camera_path(os.path.join(scene, "base_cam.json"))
+
+	testbed.camera_smoothing = camera_smoothing
 
 	if 'temp' in os.listdir():
 		shutil.rmtree('temp')
@@ -81,19 +81,14 @@ def render_video(resolution, numframes, scene, name, spp, fps, exposure=0):
 		if i == 0:
 			continue
 
-		ix = i - 1
-
-		# common.write_image(f"temp/{ix:04d}.png", np.clip(frame * 2**exposure, 0.0, 1.0), quality=100)
 		img = convert_to_img(frame, exposure)
 		recorder.add_image(img)
-		# cv2.imwrite(f"temp/{ix:04d}.png", img)
 
 	print("waiting for recorder to write all files...")
 	recorder.shutdown()
 
 	output_name = os.path.join(scene, f"{name}.mp4")
-	os.system(f"ffmpeg -i temp/%04d.png -vf \"fps={fps}\" -c:v libx264 -crf 20 -pix_fmt yuv420p {output_name}")
-	# shutil.rmtree('temp')
+	os.system(f"ffmpeg -i temp/%04d.png -vf \"fps={fps}\" -c:v libx264 -crf 20 -pix_fmt yuv420p -y {output_name}")
 
 def convert_to_img(frame, exposure):
 	img = np.clip(frame * 2**exposure, 0.0, 1.0)
@@ -114,6 +109,8 @@ def parse_args():
 	parser.add_argument("--height", "--screenshot_h", type=int, default=1080, help="Resolution height of the render video")
 	parser.add_argument("--n_seconds", type=int, default=1, help="Number of steps to train for before quitting.")
 	parser.add_argument("--fps", type=int, default=60, help="number of fps")
+	parser.add_argument("--spp", type=int, default=8, help="number of fps")
+	parser.add_argument("--camera-smoothing", action="store_true", help="smooth camera")
 	parser.add_argument("--render_name", type=str, default="", help="name of the result video")
 
 
@@ -123,4 +120,5 @@ def parse_args():
 if __name__ == "__main__":
 	args = parse_args()
 
-	render_video([args.width, args.height], args.n_seconds*args.fps, args.scene, args.render_name, spp=8, fps=args.fps)
+	render_video([args.width, args.height], args.n_seconds*args.fps, args.scene, args.render_name,
+				 spp=args.spp, fps=args.fps, camera_smoothing=args.camera_smoothing)
