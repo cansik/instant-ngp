@@ -59,13 +59,23 @@ class AsyncFrameSetRecorder:
         output_path = os.path.join(self.output_path, f"{id:04d}.png")
         cv2.imwrite(output_path, image)
 
+def set_crop_size(testbed, crop_size):
+	cen = testbed.render_aabb.center()
+	diag = np.array([crop_size, crop_size, crop_size])
+	bbox = ngp.BoundingBox(cen - diag * 0.5, cen + diag * 0.5)
 
-def render_video(resolution, numframes, scene, name, spp, fps, camera_smoothing, exposure=0):
+	testbed.render_aabb.min = bbox.min
+	testbed.render_aabb.max = bbox.max
+
+def render_video(resolution, numframes, scene, name, spp, fps, camera_smoothing, exposure=0, crop_size = None):
 	testbed = ngp.Testbed(ngp.TestbedMode.Nerf)
 	testbed.load_snapshot(os.path.join(scene, "base.msgpack"))
 	testbed.load_camera_path(os.path.join(scene, "base_cam.json"))
 
 	testbed.camera_smoothing = camera_smoothing
+
+	if crop_size is not None:
+		set_crop_size(testbed, crop_size)
 
 	if 'temp' in os.listdir():
 		shutil.rmtree('temp')
@@ -75,7 +85,6 @@ def render_video(resolution, numframes, scene, name, spp, fps, camera_smoothing,
 	recorder.open()
 
 	for i in tqdm(list(range(min(numframes,numframes+1))), unit="frames", desc=f"Rendering"):
-		testbed.camera_smoothing = i > 0
 		frame = testbed.render(resolution[0], resolution[1], spp, True, float(i)/numframes, float(i + 1)/numframes, fps, shutter_fraction=0.5)
 
 		if i == 0:
@@ -110,6 +119,7 @@ def parse_args():
 	parser.add_argument("--n_seconds", type=int, default=1, help="Number of steps to train for before quitting.")
 	parser.add_argument("--fps", type=int, default=60, help="number of fps")
 	parser.add_argument("--spp", type=int, default=8, help="number of fps")
+	parser.add_argument("--crop-size", type=float, default=None, help="crop size")
 	parser.add_argument("--camera-smoothing", action="store_true", help="smooth camera")
 	parser.add_argument("--render_name", type=str, default="", help="name of the result video")
 
@@ -121,4 +131,4 @@ if __name__ == "__main__":
 	args = parse_args()
 
 	render_video([args.width, args.height], args.n_seconds*args.fps, args.scene, args.render_name,
-				 spp=args.spp, fps=args.fps, camera_smoothing=args.camera_smoothing)
+				 spp=args.spp, fps=args.fps, camera_smoothing=args.camera_smoothing, crop_size=args.crop_size)

@@ -7,6 +7,7 @@ param (
     $width=1280,
     $height=720,
     $spp=8,
+    $crop_size=16.0,
     [Switch]$smoothing=$true
 )
 
@@ -36,7 +37,7 @@ if ($render) {
     echo "rendering..."
     $render_name = Split-Path "$path" -Leaf
     $smp = op "--camera-smoothing" $smoothing
-    python scripts/render.py --scene "$path" --n_seconds $time --fps $fps --render_name "$render_name" --width $width --height $height --spp $spp $smp
+    python scripts/render.py --scene "$path" --n_seconds $time --fps $fps --render_name "$render_name" --width $width --height $height --spp $spp $smp --crop-size $crop_size
 } else {
 	$add_args = ""
 
