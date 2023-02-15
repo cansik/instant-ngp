@@ -17,6 +17,7 @@ imgui.ini
 /temp
 .idea
 *.mp4
+*.mov
 *.db
 /colmap_text
 /colmap_sparse
