@@ -11,6 +11,9 @@ param (
     [Switch]$smoothing=$true
 )
 
+$path = Resolve-Path $path
+$path = $path.ToString().TrimEnd("\")
+
 function op($name, $c) {
     if($c) {
         return $name

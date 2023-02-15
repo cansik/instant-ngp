@@ -13,7 +13,7 @@
 __pycache__
 .DS_Store
 imgui.ini
-/data
+/data/**/
 /temp
 .idea
 *.mp4
