@@ -1,0 +1,1 @@
+magick mogrify -resize 50%% %1\*.png
